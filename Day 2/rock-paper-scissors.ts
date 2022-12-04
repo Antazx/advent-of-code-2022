@@ -1,81 +1,56 @@
-import readFile from '../readInput.ts';
+import readInput from '../readInput.ts';
 
-const SCORES = {
-  LOSS: 0,
-  DRAW: 3,
-  WIN: 6
-};
+const Choose = {
+  A: 'Rock',
+  B: 'Paper',
+  C: 'Scissors',
+  X: 'Rock',
+  Y: 'Paper',
+  Z: 'Scissors'
+} as const;
 
-enum PLAY {
-  ROCK = 'Rock',
-  PAPER = 'Paper',
-  SCISSORS = 'Scissors'
-}
+const Values = {
+  Rock: 1,
+  Paper: 2,
+  Scissors: 3
+} as const;
 
-const OPPONENT_OPTIONS = {
-  A: [PLAY.ROCK, 1],
-  B: [PLAY.PAPER, 2],
-  C: [PLAY.SCISSORS, 3]
-};
+const Result = {
+  Loss: 0,
+  Draw: 3,
+  Win: 6
+} as const;
 
-const PLAYER_OPTIONS = {
-  X: [PLAY.ROCK, 1],
-  Y: [PLAY.PAPER, 2],
-  Z: [PLAY.SCISSORS, 3]
-};
-
-const win = (value: number) => value + SCORES.WIN;
-const loss = (value: number) => value + SCORES.LOSS;
-const draw = (value: number) => value + SCORES.DRAW;
-
-function getResults(opponent: keyof typeof OPPONENT_OPTIONS, player: keyof typeof PLAYER_OPTIONS) {
-  const opponentPlay = OPPONENT_OPTIONS[opponent] as [PLAY, number];
-  const playerPlay = PLAYER_OPTIONS[player] as [PLAY, number];
-  return computePlays(opponentPlay, playerPlay);
-}
-
-function computePlays(first: [PLAY, number], second: [PLAY, number]) {
-  const [firstPlay, firstValue] = first;
-  const [secondPlay, secondValue] = second;
-
-  if (firstPlay === secondPlay) return [draw(firstValue), draw(secondValue)];
-
-  if (firstPlay === PLAY.ROCK && secondPlay === PLAY.SCISSORS)
-    return [win(firstValue), loss(secondValue)];
-
-  if (firstPlay === PLAY.ROCK && secondPlay === PLAY.PAPER)
-    return [loss(firstValue), win(secondValue)];
-
-  if (firstPlay === PLAY.PAPER && secondPlay === PLAY.ROCK)
-    return [win(firstValue), loss(secondValue)];
-
-  if (firstPlay === PLAY.PAPER && secondPlay === PLAY.SCISSORS)
-    return [loss(firstValue), win(secondValue)];
-
-  if (firstPlay === PLAY.SCISSORS && secondPlay === PLAY.PAPER)
-    return [win(firstValue), loss(secondValue)];
-
-  if (firstPlay === PLAY.SCISSORS && secondPlay === PLAY.ROCK)
-    return [loss(firstValue), win(secondValue)];
-
-  throw new Error('Cant compute plays');
-}
-
-const input = await readFile('Day 2/input.txt');
+const input = await readInput('Day 2/input.txt');
 const strategyList = input.split('\n').map((line) => line.split(' '));
-const strategyResults = strategyList.map((round) => {
-  const opponent = round[0] as keyof typeof OPPONENT_OPTIONS;
-  const player = round[1] as keyof typeof PLAYER_OPTIONS;
-  return getResults(opponent, player);
-});
+const strategyMap = strategyList.map(([opponent, player]) => [
+  Choose[opponent as keyof typeof Choose],
+  Choose[player as keyof typeof Choose]
+]);
 
 let opponentTotal = 0;
 let playerTotal = 0;
 
-for (const roundResult of strategyResults) {
-  opponentTotal += roundResult[0];
-  playerTotal += roundResult[1];
-}
+strategyMap.forEach(([opponent, player]) => {
+  const [oResult, pResult] = getChooseResult(opponent, player);
+  opponentTotal += oResult + Values[opponent];
+  playerTotal += pResult + Values[player];
+});
 
-console.log('🚀 ~ file: rock-paper-scissors.ts:88 ~ opponentTotal', opponentTotal);
-console.log('🚀 ~ file: rock-paper-scissors.ts:85 ~ playerTotal', playerTotal);
+console.log('🚀 ~ opponentTotal', opponentTotal);
+console.log('🚀 ~ playerTotal', playerTotal);
+
+function getChooseResult(
+  opponent: keyof typeof Values,
+  player: keyof typeof Values
+): [number, number] {
+  if (opponent === player) return [Result.Draw, Result.Draw];
+  if (opponent === 'Rock' && player === 'Scissors') return [Result.Win, Result.Loss];
+  if (opponent === 'Rock' && player === 'Paper') return [Result.Loss, Result.Win];
+  if (opponent === 'Paper' && player === 'Rock') return [Result.Win, Result.Loss];
+  if (opponent === 'Paper' && player === 'Scissors') return [Result.Loss, Result.Win];
+  if (opponent === 'Scissors' && player === 'Paper') return [Result.Win, Result.Loss];
+  if (opponent === 'Scissors' && player === 'Rock') return [Result.Loss, Result.Win];
+
+  throw new Error(`Can't get winner`);
+}

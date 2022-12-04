@@ -7,6 +7,6 @@ const input = inputString
 
 const itemCalories: number[][] = input;
 const calories = itemCalories.map((items) => items.reduce((acc, curr) => acc + curr, 0), []);
-const [first, second, third, ...loosers] = calories.sort((a, b) => b - a);
+const [first, second, third, ..._loosers] = calories.sort((a, b) => b - a);
 const result = first + second + third;
 console.log('🚀 ~ file: calorie-counting.ts:12 ~ result', result);
