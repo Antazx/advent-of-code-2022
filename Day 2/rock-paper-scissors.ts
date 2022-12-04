@@ -3,10 +3,13 @@ import readInput from '../readInput.ts';
 const Choose = {
   A: 'Rock',
   B: 'Paper',
-  C: 'Scissors',
-  X: 'Rock',
-  Y: 'Paper',
-  Z: 'Scissors'
+  C: 'Scissors'
+} as const;
+
+const EndResults = {
+  X: 'Loss',
+  Y: 'Draw',
+  Z: 'Win'
 } as const;
 
 const Values = {
@@ -23,15 +26,18 @@ const Result = {
 
 const input = await readInput('Day 2/input.txt');
 const strategyList = input.split('\n').map((line) => line.split(' '));
-const strategyMap = strategyList.map(([opponent, player]) => [
-  Choose[opponent as keyof typeof Choose],
-  Choose[player as keyof typeof Choose]
-]);
+const strategyMap = strategyList.map(
+  ([opponent, player]): [keyof typeof Values, keyof typeof Result] => [
+    Choose[opponent as keyof typeof Choose],
+    EndResults[player as keyof typeof EndResults]
+  ]
+);
 
 let opponentTotal = 0;
 let playerTotal = 0;
 
-strategyMap.forEach(([opponent, player]) => {
+strategyMap.forEach(([opponent, endResult]) => {
+  const player = getPlayerChoice(opponent, endResult);
   const [oResult, pResult] = getChooseResult(opponent, player);
   opponentTotal += oResult + Values[opponent];
   playerTotal += pResult + Values[player];
@@ -53,4 +59,19 @@ function getChooseResult(
   if (opponent === 'Scissors' && player === 'Rock') return [Result.Loss, Result.Win];
 
   throw new Error(`Can't get winner`);
+}
+
+function getPlayerChoice(
+  opponent: keyof typeof Values,
+  endResult: keyof typeof Result
+): keyof typeof Values {
+  if (endResult === 'Draw') return opponent;
+  if (endResult === 'Loss' && opponent === 'Paper') return 'Rock';
+  if (endResult === 'Loss' && opponent === 'Rock') return 'Scissors';
+  if (endResult === 'Loss' && opponent === 'Scissors') return 'Paper';
+  if (endResult === 'Win' && opponent === 'Paper') return 'Scissors';
+  if (endResult === 'Win' && opponent === 'Rock') return 'Paper';
+  if (endResult === 'Win' && opponent === 'Scissors') return 'Rock';
+
+  throw new Error('Cant get player choice');
 }
