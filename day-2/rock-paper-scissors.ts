@@ -24,7 +24,7 @@ const Result = {
   Win: 6
 } as const;
 
-const input = await readInput('Day 2/input.txt');
+const input = await readInput('day-2/input.txt');
 const strategyList = input.split('\n').map((line) => line.split(' '));
 const strategyMap = strategyList.map(
   ([opponent, player]): [keyof typeof Values, keyof typeof Result] => [

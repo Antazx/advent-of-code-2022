@@ -3,7 +3,7 @@ import readInput from '../readInput.ts';
 type Range = { start: number; end: number };
 type Assignment = [Range, Range];
 
-const inputString = await readInput('Day 4/input.txt');
+const inputString = await readInput('day-4/input.txt');
 const assignments: Assignment[] = parseInput(inputString);
 const contained = assignments.map(checkAssignment);
 const result = contained.filter((isContained) => isContained === true).length;
@@ -21,11 +21,15 @@ function parseInput(inputString: string): Assignment[] {
 
 function checkAssignment(assignment: Assignment): boolean {
   const [range1, range2] = assignment;
-  return containsRange(range1, range2) || containsRange(range2, range1);
+  return overlapsRange(range2, range1);
 }
 
 function containsRange(range1: Range, range2: Range): boolean {
   return range1.start <= range2.start && range1.end >= range2.end;
+}
+
+function overlapsRange(range1: Range, range2: Range): boolean {
+  return !(range1.end < range2.start || range1.start > range2.end);
 }
 
 function toAssignment(stringList: string[]): Assignment {

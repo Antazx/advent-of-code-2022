@@ -67,7 +67,7 @@ const LOWERCASE_CHARS = [
 
 const ITEM_VALUES = { ...charToValue(LOWERCASE_CHARS), ...charToValue(UPPERCASE_CHARS, 27) };
 
-const input = await readInput('Day 4/input.txt');
+const input = await readInput('day-3/input.txt');
 const rucksackList: Rucksack[] = input
   .split('\n')
   .map((rucksack) => [

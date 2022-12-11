@@ -1,6 +1,6 @@
 import readInput from '../readInput.ts';
 
-const inputString = await readInput('Day 1/input.txt');
+const inputString = await readInput('day-1/input.txt');
 const input = inputString
   .split('\n\n')
   .map((line) => line.split('\n').map((element) => Number(element)));
