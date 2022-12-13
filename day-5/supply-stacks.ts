@@ -32,7 +32,7 @@ function getHeadItem(stacks: Stack[]): string[] {
 }
 
 function setCrates(stacks: Stack[], to: number, crates: string[]) {
-  stacks[to] = [...crates.reverse(), ...stacks[to].filter((crate) => crate !== ' ')];
+  stacks[to] = [...crates, ...stacks[to].filter((crate) => crate !== ' ')];
 }
 
 function getCrates(stacks: Stack[], from: number, number: number): string[] {
