@@ -8,38 +8,24 @@ type Rope = {
   tail: Position;
 };
 
-/**
- * Head and Tail always touching
- *
- * If the head is ever two steps directly up, down, left, or right from the tail,
- * the tail must also move one step in that direction so it remains close enough
- *
- * If the head and tail aren't touching and aren't in the same row or column,
- * the tail always moves one step diagonally
- *
- * After simulating the rope, you can count up all of the positions the tail
- * visited at least once
- */
-
 const input = await readInput('day-9/input.txt');
 const headMovements: [Direction, StepCount][] = parseInput(input);
 const positionsVisited = processMovements(headMovements);
-console.log(`file: bridge-rope.ts:26 - headMovements`, headMovements);
+console.log(`file: bridge-rope.ts:31 - positionsVisited`, positionsVisited.size);
 
-function processMovements(headMovements: [Direction, StepCount][]): Position[] {
+function processMovements(headMovements: [Direction, StepCount][]): Set<string> {
   const rope: Rope = { head: [0, 0], tail: [0, 0] };
-  const positionsVisited: Position[] = [[0, 0]];
+  let positionsVisited: Set<string> = new Set<string>();
 
   for (let index = 0; index < headMovements.length; index++) {
-    let [direction, steps] = headMovements[index];
+    const [direction, steps] = headMovements[index];
 
-    for (steps; steps > 0; steps--) {
+    for (let stepIndex = 0; stepIndex < steps; stepIndex++) {
       const headMovement: Position = moveHead(rope, direction);
-      const tailMovement: Position = followHead(rope);
-      positionsVisited.push(rope.tail);
       rope.head = headMovement;
-      rope.tail = tailMovement;
-      console.log(rope);
+      const [tailPosition, lastTailPositions] = followHead(rope, positionsVisited);
+      rope.tail = tailPosition;
+      positionsVisited = new Set([...positionsVisited, ...lastTailPositions]);
     }
   }
   return positionsVisited;
@@ -61,29 +47,46 @@ function moveHead(rope: Pick<Rope, 'head'>, direction: Direction): Position {
   return move(rope.head, direction);
 }
 
-function moveTail({ head, tail }: Rope): Position {
+function moveTail({ head, tail }: Rope, positionsVisited: Set<string>): [Position, Set<string>] {
+  const movements: [Direction, StepCount][] = [];
   const [xDiff, yDiff] = getPositionDiff({ head, tail });
-  //FOR EACH DIFERENCE PUSH A MOVEMENT THEN PROCESS MOVEMENTS
-  //xdif > 1 care Math.abs we need to known the sign to infer direction
+
+  let needDiagonal = Math.abs(xDiff) >= 1 && Math.abs(yDiff) >= 1;
+
+  if (xDiff > 0) movements.push(['U', 1]);
+  if (xDiff < 0) movements.push(['D', 1]);
+  if (yDiff > 0) movements.push(['R', 1]);
+  if (yDiff < 0) movements.push(['L', 1]);
+
+  let currentPosition = tail;
+  for (const movement of movements) {
+    const [direction, steps] = movement;
+    currentPosition = move(currentPosition, direction, steps);
+    if (!needDiagonal) positionsVisited.add(`${currentPosition[0]}-${currentPosition[1]}`);
+    needDiagonal = false;
+  }
+
+  return [currentPosition, positionsVisited];
 }
 
 function getPositionDiff({ head, tail }: Rope): Position {
   const [xHead, yHead] = head;
   const [xTail, yTail] = tail;
-  const xDiff = Math.abs(xHead - xTail);
-  const yDiff = Math.abs(yHead - yTail);
-  return [xDiff, yDiff];
+  return [xHead - xTail, yHead - yTail];
 }
 
-function followHead({ head, tail }: Rope): Position {
-  if (isHeadTouchigTail({ head, tail })) return tail;
-  return moveTail({ head, tail });
+function followHead({ head, tail }: Rope, positionsVisited: Set<string>): [Position, Set<string>] {
+  const needToMoveTail = !isHeadTouchigTail({ head, tail });
+  return needToMoveTail ? moveTail({ head, tail }, positionsVisited) : [tail, positionsVisited];
 }
 
 function isHeadTouchigTail({ head, tail }: Rope): boolean {
   if (head[0] === tail[0] && head[1] === tail[1]) return true;
 
-  const [xDiff, yDiff] = getPositionDiff({ head, tail });
+  let [xDiff, yDiff] = getPositionDiff({ head, tail });
+  xDiff = Math.abs(xDiff);
+  yDiff = Math.abs(yDiff);
+
   if (xDiff === 1 && yDiff === 0) return true;
   if (xDiff === 0 && yDiff === 1) return true;
   if (xDiff === 1 && yDiff === 1) return true;
